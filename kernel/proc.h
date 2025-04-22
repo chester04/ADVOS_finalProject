@@ -132,4 +132,11 @@ struct proc {
 	struct file      *ofile[NOFILE]; // Open files
 	struct inode     *cwd;           // Current directory
 	char              name[16];      // Process name (debugging)
+
+	//FOR PROJECT
+	//add deadline and period for each process
+	int deadline; //process deadline
+	int period;   //process period
+	int remaining_time; //remaining time for the process to finish maybe?
+
 };
