@@ -108,7 +108,14 @@ allocpid()
 static struct proc *
 allocproc(void)
 {
-	struct proc *p;
+
+	struct proc *p = 0;
+	// initializing variables 
+	p->edf       = 0;
+	p->period    = 0;
+	p->wcet      = 0;
+	p->time_used = 0;
+	p->deadline  = 0;
 
 	for (p = proc; p < &proc[NPROC]; p++) {
 		acquire(&p->lock);
@@ -123,6 +130,7 @@ allocproc(void)
 found:
 	p->pid   = allocpid();
 	p->state = USED;
+	p->deadline = DEADLINE;
 
 	// Allocate a trapframe page.
 	if ((p->trapframe = (struct trapframe *)kalloc()) == 0) {
@@ -161,6 +169,12 @@ freeproc(struct proc *p)
 	p->trapframe = 0;
         p->pagetable_proc = 0;
 	if (p->pagetable) proc_freepagetable(p->pagetable, p->sz);
+	// clear EDF metadata
+	p->edf      = 0;
+	p->period    = 0;
+	p->wcet      = 0;
+	p->time_used = 0;
+	p->deadline  = 0;
 	p->pagetable = 0;
 	p->sz        = 0;
 	p->pid       = 0;
@@ -275,7 +289,15 @@ fork(void)
 	struct proc *p = myproc();
 
 	// Allocate process.
+	// copy EDF parameters into child
 	if ((np = allocproc()) == 0) { return -1; }
+
+	np->edf       = p->edf;
+	np->period    = p->period;
+	np->wcet      = p->wcet;
+	// reset child's usage; set next deadline relative to now
+	np->time_used = 0;
+	np->deadline  = p->edf ? ticks + p->period: 0;
 
 	// Copy user memory from parent to child.
 	if (uvmcopy(p->pagetable, np->pagetable, p->sz) < 0) {
@@ -431,21 +453,111 @@ wait(uint64 addr)
 //  - swtch to start running that process.
 //  - eventually that process transfers control
 //    via swtch back to the scheduler.
+// void
+// scheduler(void)
+// {
+// 	struct proc *p;
+// 	struct proc *edf_proc;
+// 	struct cpu  *c = mycpu();
+
+// 	c->proc = 0;
+// 	for (;;) {
+// 		// The most recent process to run may have had interrupts
+// 		// turned off; enable them to avoid a deadlock if all
+// 		// processes are waiting.
+// 		intr_on();
+
+// 		int found = 0;
+
+			
+// 		// loop through that table instead of proc table
+// 		for (p = proc; p < &proc[NPROC]; p++) {
+// 			acquire(&p->lock);
+// 			if (p->state == RUNNABLE) {
+// 				// Switch to chosen process.  It is the process's job
+// 				// to release its lock and then reacquire it
+// 				// before jumping back to us.
+// 				p->state = RUNNING;
+// 				c->proc  = p;
+// 				swtch(&c->context, &p->context);
+
+// 				// Process is done running for now.
+// 				// It should have changed its p->state before coming back.
+// 				c->proc = 0;
+// 				found   = 1;
+// 			}
+// 			release(&p->lock);
+// 		}
+// 		if (found == 0) {
+// 			// nothing to run; stop running on this core until an interrupt.
+// 			intr_on();
+// 			asm volatile("wfi");
+// 		}
+// 	}
+// }
+
+// in proc.c
 void
 scheduler(void)
 {
-	struct proc *p;
-	struct cpu  *c = mycpu();
+  struct proc *p;
+  struct cpu  *c = mycpu();
+	
+  c->proc = 0;
+  for(;;){
+	//default to round robin if no edf procs were found
+	//int found = 0;
+    // enable interrupts on this processor.
+    intr_on();
+	struct proc *best = 0;
+    // 1) Scan for the EDF‐eligible process with earliest deadline
+    for(p = proc; p < &proc[NPROC]; p++){
+		acquire(&p->lock);
+    	if(p->state != RUNNABLE || !p->edf)
+    		continue;
+    	if(!best || p->deadline < best->deadline)
+		{
+			if(best)
+			{
+				release(&best->lock);
+			}
+        	best = p;
+		}	
+		else
+		{
+			release(&p->lock);
+		}
+    }
 
-	c->proc = 0;
-	for (;;) {
-		// The most recent process to run may have had interrupts
-		// turned off; enable them to avoid a deadlock if all
-		// processes are waiting.
+    // 2) If we found a real‑time job, run it
+    if(best)
+	{
+		//found = 1;
+		best->state = RUNNING;
+        c->proc = best;
+        swtch(&c->context, &best->context);
+        c->proc = 0;
+		// upon return, we’ve used one tick
+		best->time_used++;
+		// ticks = ticks; // ensure ticks is up‑to‑date
+		// 3) If this job has exhausted its WCET, or reached its deadline → demote
+		if(best->time_used >= best->wcet || ticks >= best->deadline){
+			// roll into next period
+			best->time_used = 0;
+			best->deadline += p->period;
+		}
+		release(&best->lock);
+		continue;
+    }
+	else 
+	{
 		intr_on();
+		asm volatile("wfi");
+	}
 
-		int found = 0;
-		for (p = proc; p < &proc[NPROC]; p++) {
+	//round robin
+   int found = 0;
+	for (p = proc; p < &proc[NPROC]; p++) {
 			acquire(&p->lock);
 			if (p->state == RUNNABLE) {
 				// Switch to chosen process.  It is the process's job
@@ -459,16 +571,19 @@ scheduler(void)
 				// It should have changed its p->state before coming back.
 				c->proc = 0;
 				found   = 1;
+				release(&p->lock);
+                break;
 			}
 			release(&p->lock);
 		}
-		if (found == 0) {
-			// nothing to run; stop running on this core until an interrupt.
+		if(!found)
+		{
 			intr_on();
 			asm volatile("wfi");
 		}
-	}
+  }
 }
+
 
 // Switch to scheduler.  Must hold only p->lock
 // and have changed proc->state. Saves and restores
@@ -669,4 +784,9 @@ procdump(void)
 		printf("%d %s %s", p->pid, state, p->name);
 		printf("\n");
 	}
+}
+
+// set EDF scheduling for a process
+int set_edf(int period, int wcet){
+	return 0;
 }

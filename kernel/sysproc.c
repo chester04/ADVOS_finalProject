@@ -89,3 +89,13 @@ sys_uptime(void)
 	release(&tickslock);
 	return xticks;
 }
+
+uint64
+sys_set_edf(void)
+{
+	// int period, wcet;
+	// argint(0, &period);
+	// argint(1, &wcet);
+	// set_edf(period, wcet);
+	return 0;
+}

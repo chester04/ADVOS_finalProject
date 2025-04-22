@@ -131,3 +131,12 @@ memcpy(void *dst, const void *src, uint n)
 {
 	return memmove(dst, src, n);
 }
+
+int
+set_edf(int period, int wcet)
+{
+	int pid = getpid();
+	if (pid < 0) { printf("Error: getpid failed\n"); return; }
+	if (pid == 1) { printf("Error: set_edf called from init process\n"); return; }
+	if (period <= 0 || wcet <= 0) { printf("Error: invalid period or wcet\n"); return; }
+}

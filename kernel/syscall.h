@@ -20,3 +20,6 @@
 #define SYS_link 19
 #define SYS_mkdir 20
 #define SYS_close 21
+
+//This is for the project
+#define SYS_set_edf 22

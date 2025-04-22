@@ -137,6 +137,10 @@ struct proc {
 	//add deadline and period for each process
 	int deadline; //process deadline
 	int period;   //process period
-	int remaining_time; //remaining time for the process to finish maybe?
+	int wcet;              // C: worst‑case execution time (ticks)
+	int time_used;         // ticks used in current period
+	int edf;              // is this process in EDF scheduling?
 
 };
+#define DEADLINE 1000 //default deadline for the process
+#define PERIOD 1000   //default period for the process
