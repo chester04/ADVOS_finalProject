@@ -109,16 +109,11 @@ static struct proc *
 allocproc(void)
 {
 
-	struct proc *p = 0;
-	// initializing variables 
-	p->edf       = 0;
-	p->period    = 0;
-	p->wcet      = 0;
-	p->time_used = 0;
-	p->deadline  = 0;
+	struct proc *p;
 
 	for (p = proc; p < &proc[NPROC]; p++) {
 		acquire(&p->lock);
+
 		if (p->state == UNUSED) {
 			goto found;
 		} else {
@@ -130,6 +125,11 @@ allocproc(void)
 found:
 	p->pid   = allocpid();
 	p->state = USED;
+	// initializing variables 
+	p->edf       = 0;
+	p->period    = 0;
+	p->wcet      = 0;
+	p->time_used = 0;
 	p->deadline = DEADLINE;
 
 	// Allocate a trapframe page.
@@ -513,26 +513,23 @@ scheduler(void)
     // 1) Scan for the EDF‐eligible process with earliest deadline
     for(p = proc; p < &proc[NPROC]; p++){
 		acquire(&p->lock);
-    	if(p->state == RUNNABLE && p->edf)
-	{
-    		if(!best || p->deadline < best->deadline)
-			{
-				if(best)
-				{
+    	if(p->state == RUNNABLE && p->edf){
+    		if(!best || p->deadline < best->deadline){
+				if(best){
 					release(&best->lock);
 				}
-        			best = p;
-				
-			else
-				{
-				release(&p->lock);
-				}
+        		best = p;
 			}
-		else
-		{
+
+			else{
+				release(&p->lock);
+			}
+			
+		}
+		else{
 			release(&p->lock);
 		}
-    	}
+	}
 
     // 2) If we found a real‑time job, run it
     if(best)
