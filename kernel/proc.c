@@ -513,49 +513,53 @@ scheduler(void)
     // 1) Scan for the EDF‐eligible process with earliest deadline
     for(p = proc; p < &proc[NPROC]; p++){
 		acquire(&p->lock);
-    	if(p->state != RUNNABLE || !p->edf)
-		release(&p->lock);
-    		continue;
-    	if(!best || p->deadline < best->deadline)
-		{
-			if(best)
+    	if(p->state == RUNNABLE && p->edf)
+	{
+    		if(!best || p->deadline < best->deadline)
 			{
-				release(&best->lock);
+				if(best)
+				{
+					release(&best->lock);
+				}
+        			best = p;
+				
+			else
+				{
+				release(&p->lock);
+				}
 			}
-        	best = p;
-		}	
 		else
 		{
 			release(&p->lock);
 		}
-    }
+    	}
 
     // 2) If we found a real‑time job, run it
     if(best)
 	{
 		//found = 1;
 		best->state = RUNNING;
-        c->proc = best;
-        swtch(&c->context, &best->context);
-        c->proc = 0;
+        	c->proc = best;
+        	swtch(&c->context, &best->context);
+        	c->proc = 0;
 		// upon return, we’ve used one tick
 		best->time_used++;
 		// ticks = ticks; // ensure ticks is up‑to‑date
 		// 3) If this job has exhausted its WCET, or reached its deadline → demote
 		if(best->time_used >= best->wcet || ticks >= best->deadline){
 			// roll into next period
-			//best->time_used = 0;
+			best->time_used = 0;
 			//best->deadline += p->period;
 			best->deadline = ticks + best->period;
 		}
 		release(&best->lock);
 		continue;
-    }
-	else 
-	{
-		intr_on();
-		asm volatile("wfi");
-	}
+    	}
+	// else 
+	// {
+	// 	intr_on();
+	// 	asm volatile("wfi");
+	// }
 
 	//round robin
    int found = 0;
@@ -574,7 +578,7 @@ scheduler(void)
 				c->proc = 0;
 				found   = 1;
 				release(&p->lock);
-                break;
+                		break;
 			}
 			release(&p->lock);
 		}
