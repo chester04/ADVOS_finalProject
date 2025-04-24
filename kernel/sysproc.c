@@ -90,12 +90,16 @@ sys_uptime(void)
 	return xticks;
 }
 
+// extern int set_edf(int pid, int period, int wcet);
+
 uint64
 sys_user_set_edf(void)
 {
-	int period, wcet;
-	argint(0, &period);
-	argint(1, &wcet);
-	kern_set_edf(period, wcet);
-	return 0;
+  	int period, wcet;
+  	argint(0, &period);
+  	argint(1, &wcet);
+    return -1;
+
+  	int pid = myproc()->pid;
+  	return kern_set_edf(pid, period, wcet);
 }
