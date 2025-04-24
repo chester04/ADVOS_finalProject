@@ -514,6 +514,7 @@ scheduler(void)
     for(p = proc; p < &proc[NPROC]; p++){
 		acquire(&p->lock);
     	if(p->state != RUNNABLE || !p->edf)
+		release(&p->lock);
     		continue;
     	if(!best || p->deadline < best->deadline)
 		{
@@ -543,8 +544,9 @@ scheduler(void)
 		// 3) If this job has exhausted its WCET, or reached its deadline → demote
 		if(best->time_used >= best->wcet || ticks >= best->deadline){
 			// roll into next period
-			best->time_used = 0;
-			best->deadline += p->period;
+			//best->time_used = 0;
+			//best->deadline += p->period;
+			best->deadline = ticks + best->period;
 		}
 		release(&best->lock);
 		continue;
