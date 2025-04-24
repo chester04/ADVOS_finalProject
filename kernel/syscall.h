@@ -22,4 +22,4 @@
 #define SYS_close 21
 
 //This is for the project
-#define SYS_set_edf 22
+#define SYS_user_set_edf 22

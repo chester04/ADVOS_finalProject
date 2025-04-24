@@ -790,6 +790,6 @@ procdump(void)
 }
 
 // set EDF scheduling for a process
-int set_edf(int period, int wcet){
+int kern_set_edf(int period, int wcet){
 	return 0;
 }

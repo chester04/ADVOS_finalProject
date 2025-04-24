@@ -42,4 +42,4 @@ void *memcpy(void *, const void *, uint);
 void *malloc(uint);
 void  free(void *);
 
-int set_edf(int period, int wcet);
+int user_set_edf(int period, int wcet);

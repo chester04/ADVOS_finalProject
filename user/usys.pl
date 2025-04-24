@@ -37,4 +37,4 @@ entry("sbrk");
 entry("sleep");
 entry("uptime");
 
-entry("set_edf");
+entry("user_set_edf");
