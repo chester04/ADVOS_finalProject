@@ -789,22 +789,77 @@ procdump(void)
 	}
 }
 
-int
-kern_set_edf(int pid, int period, int deadline)
-{
-  struct proc *p;
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->pid == pid){
-      acquire(&p->lock);
-      p->edf = 1;
-      p->period = period;
-    //   p->wcet = wcet;
-      p->deadline = ticks + period;
-      p->time_used = 0;
-      release(&p->lock);
-      return 0;
-    }
-  }
-  return -1; // PID not found
-}
+//OLD CODE
 
+// int
+// kern_set_edf(int pid, int period, int deadline)
+// {
+// 	//SAMEEN: ADDED HERE
+// 	//do an EDF test: sum(wcet/period) ≤ 1.0 → allow, else DO NOT allow
+//   struct proc *p;
+//   for(p = proc; p < &proc[NPROC]; p++)
+//   {
+//     if(p->pid == pid)
+// 	{
+//       acquire(&p->lock);
+//       p->edf = 1;
+//       p->period = period;
+//     //   p->wcet = wcet;
+//       p->deadline = ticks + period;
+//       p->time_used = 0;
+//       release(&p->lock);
+//       return 0;
+//     }
+//   }
+//   return -1; // PID not found
+// }
+
+//sameen: updated new code, check this if it's correct
+//ONLY allow a process into EDF scheduling if total capacity ≤ 100%
+int
+kern_set_edf(int pid, int period, int wcet)
+{
+    struct proc *p, *p_check;
+    int new_cap, total_cap = 0;
+
+    //compute this task's capacity in milli-percent: cap = (wcet/period)*1000
+    if(period <= 0 || wcet < 0 || wcet > period)
+	{
+        return -1;
+	}
+    new_cap = (wcet * 1000) / period;
+
+    // loop through existing EDF tasks to count 
+    for(p_check = proc; p_check < &proc[NPROC]; p_check++)
+	{
+        acquire(&p_check->lock);
+        if(p_check->edf && p_check->pid != pid)
+		{
+            total_cap += (p_check->wcet * 1000) / p_check->period;
+        }
+        release(&p_check->lock);
+
+        //return -1 if we’re already over capacity, can't do it
+        if(total_cap + new_cap > 1000)
+		{
+            return -1;
+		}
+    }
+
+    // find and allow the target process
+    for(p = proc; p < &proc[NPROC]; p++)
+	{
+        if(p->pid == pid)
+		{
+            acquire(&p->lock);
+            p->edf       = 1;
+            p->period    = period;
+            p->wcet      = wcet;
+            p->time_used = 0;
+            p->deadline  = ticks + period;
+            release(&p->lock);
+            return 0;
+        }
+    }
+    return -1;  //pid never found
+}

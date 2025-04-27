@@ -95,11 +95,18 @@ sys_uptime(void)
 uint64
 sys_user_set_edf(void)
 {
-  	int period, wcet;
-  	argint(0, &period);
-  	argint(1, &wcet);
-    return -1;
+  	// int period, wcet;
+  	// argint(0, &period);
+  	// argint(1, &wcet);
+    // return -1;
 
-  	int pid = myproc()->pid;
+  	// int pid = myproc()->pid;
+  	// return kern_set_edf(pid, period, wcet);
+
+	int pid, period, wcet;
+  	argint(0, &pid);
+  	argint(1, &period);
+  	argint(2, &wcet);
+  	//call EDF admission routine
   	return kern_set_edf(pid, period, wcet);
 }
