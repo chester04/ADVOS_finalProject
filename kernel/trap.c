@@ -141,21 +141,44 @@ usertrap(void)
 
 	if (killed(p)) exit(-1);
 
-	// give up the CPU if this is a timer interrupt.
-	//CHANGED IT HERE
-	if (which_dev == 2)
+
+
+	// if (which_dev == 2)
+	// {
+	// 	struct proc *p = myproc();
+    // 		if (p && p->edf) {
+    //     		acquire(&p->lock);
+    //     		p->time_used++;
+    //     		if (p->time_used >= p->wcet) {
+    //         			release(&p->lock);
+    //         			yield();                // preempt EDF job on WCET exhaustion
+    //     		}
+    //     		release(&p->lock);
+    // 		}
+    // 		yield();                      // always yield on a timer tick
+	// }
+		//CHANGED IT HERE
+	if (which_dev == 2) 
 	{
 		struct proc *p = myproc();
-    		if (p && p->edf) {
-        		acquire(&p->lock);
-        		p->time_used++;
-        		if (p->time_used >= p->wcet) {
-            			release(&p->lock);
-            			yield();                // preempt EDF job on WCET exhaustion
-        		}
-        		release(&p->lock);
-    		}
-    		yield();                      // always yield on a timer tick
+		if (p) 
+		{
+			acquire(&p->lock);
+			if (p->edf) 
+			{
+				//account for one tick of execution
+				p->time_used++;
+				// If either WCET is exhausted or the deadline arrived, roll this job into its next period:
+				if (p->time_used >= p->wcet || ticks >= p->deadline) 
+				{
+					p->time_used  = 0;
+					p->deadline  = ticks + p->period;
+				}
+			}
+			release(&p->lock);
+		}
+		//always yield on a timer tick
+		yield();
 	}
 
 	usertrapret();
