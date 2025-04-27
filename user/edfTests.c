@@ -3,7 +3,9 @@
 #include "kernel/stat.h"
 #include "user.h"
 
-//basic child that sets EDF and does some simulated work
+// -------------------------------------------
+// Simple Child Process for EDF Setting
+// -------------------------------------------
 void basic_child(int period, int deadline, char *name) {
     int ret = user_set_edf(getpid(), period, deadline);
     if (ret == -1) {
@@ -11,18 +13,14 @@ void basic_child(int period, int deadline, char *name) {
     } else {
         printf("%s: EDF set with period %d deadline %d (pid %d)\n", name, period, deadline, getpid());
     }
-    sleep(50); //simulate work
+    sleep(50); // simulate work
     printf("%s: done\n", name);
     exit(0);
 }
-// void child(int pid, int period, int deadline, char * name) {
-//   user_set_edf(pid,period,deadline);
-//   printf( "%s running with deadline %d\n", name, deadline);
-//   sleep(50);  // simulate work
-//   printf( "%s done\n", name);
 
-// }
-
+// -------------------------------------------
+// Test 1: Basic EDF Setting
+// -------------------------------------------
 void test_basic_edf() {
     printf("\n--- Test 1: Basic EDF Setting ---\n");
     int pid = fork();
@@ -32,13 +30,17 @@ void test_basic_edf() {
     wait(0);
 }
 
-//need to test invalid pid handling in kernel mode
+// -------------------------------------------
+// Test 2: Invalid PID Handling
+// (Can't test properly in user mode)
+// -------------------------------------------
 void test_invalid_pid() {
     printf("\n--- Test 2: Invalid PID Handling (SKIPPED) ---\n");
-    printf("(Would need kernel-mode unit test)\n");
 }
 
-// see if the scheduler prefers earliest deadline
+// -------------------------------------------
+// Test 3: EDF Prefers Earliest Deadline
+// -------------------------------------------
 void test_earliest_deadline() {
     printf("\n--- Test 3: EDF Scheduler Preference ---\n");
 
@@ -66,102 +68,57 @@ void test_earliest_deadline() {
     wait(0);
 }
 
-//what happenes if we miss a deadline (need to fix)
+// -------------------------------------------
+// Test 4: Deadline Miss Handling
+// -------------------------------------------
 void test_deadline_miss() {
     printf("\n--- Test 4: Deadline Miss and Roll Over ---\n");
     int pid = fork();
     if (pid == 0) {
         user_set_edf(getpid(), 10, 20);
         printf("Process with short period started (pid %d)\n", getpid());
-        sleep(30); //miss deadline 
+        sleep(30); // Miss the deadline intentionally
         printf("Process after missing deadline (pid %d)\n", getpid());
         exit(0);
     }
     wait(0);
 }
 
-int main() {
-    printf("\n=== Starting EDF Tests ===\n");
-
-    test_basic_edf();
-    test_invalid_pid();
-    test_earliest_deadline();
-    test_deadline_miss();
-
-    printf("\n=== EDF Tests Complete ===\n");
-    exit(0);
-}
-
-// int main() {
-
-//   if (fork() == 0) {
-//     int pida = fork();
-//     child(pida, 10, 20, "Process C");
-//   }
-
-//   if (fork() == 0) {
-//     int pidb = fork();
-//     child(pidb,5, 10, "Process A");
-//   }
-
-//   if (fork() == 0) {
-//     int pidc = fork();
-//     child(pidc,6,36, "Process B");
-//   }
-
-
-//   printf("EDF test complete\n");
-
-// }
-
-
-
-
-// Single-task  test
-// expect = 1 -> should succeed (ret>=0)
-// expect = 0 -> should fail   (ret<0)
-static void
-test_single(int period, int wcet, int expect, const char *name)
-{
+// -------------------------------------------
+// Utility: Single Task Test
+// expect = 1 -> should succeed (ret >= 0)
+// expect = 0 -> should fail   (ret < 0)
+// -------------------------------------------
+static void test_single(int period, int wcet, int expect, const char *name) {
     int pid = fork();
-    if (pid < 0) 
-    {
+    if (pid < 0) {
         printf("FAIL: fork failed for %s\n", name);
         exit(1);
     }
-    if (pid == 0) 
-    {
+    if (pid == 0) {
         int ret = user_set_edf(getpid(), period, wcet);
-        if ((ret >= 0 && expect) || (ret < 0 && !expect)) 
-        {
+        if ((ret >= 0 && expect) || (ret < 0 && !expect)) {
             printf("PASS: %s (period=%d, wcet=%d)\n", name, period, wcet);
             exit(0);
-        } 
-        else 
-        {
-            printf("FAIL: %s (period=%d, wcet=%d) returned %d\n",
-                   name, period, wcet, ret);
+        } else {
+            printf("FAIL: %s (period=%d, wcet=%d) returned %d\n", name, period, wcet, ret);
             exit(1);
         }
     }
     wait(0);
 }
 
-// Concurrent-task admission test
-// First two tasks will stay active for 50 ticks
-// The third should be rejected (expect=0)
-static void
-test_concurrent(int p1_period, int p1_wcet,
-                int p2_period, int p2_wcet,
-                int p3_period, int p3_wcet,
-                int expect)
-{
+// -------------------------------------------
+// Utility: Concurrent Admission Test
+// -------------------------------------------
+static void test_concurrent(int p1_period, int p1_wcet,
+                            int p2_period, int p2_wcet,
+                            int p3_period, int p3_wcet,
+                            int expect) {
     int p1 = fork();
     if (p1 < 0) { printf("FAIL: fork p1 failed\n"); exit(1); }
-    if (p1 == 0) 
-    {
-        if (user_set_edf(getpid(), p1_period, p1_wcet) < 0) 
-        {
+    if (p1 == 0) {
+        if (user_set_edf(getpid(), p1_period, p1_wcet) < 0) {
             printf("FAIL: Task1 failed (period=%d, wcet=%d)\n", p1_period, p1_wcet);
             exit(1);
         }
@@ -171,10 +128,8 @@ test_concurrent(int p1_period, int p1_wcet,
 
     int p2 = fork();
     if (p2 < 0) { printf("FAIL: fork p2 failed\n"); exit(1); }
-    if (p2 == 0) 
-    {
-        if (user_set_edf(getpid(), p2_period, p2_wcet) < 0) 
-        {
+    if (p2 == 0) {
+        if (user_set_edf(getpid(), p2_period, p2_wcet) < 0) {
             printf("FAIL: Task2 failed (period=%d, wcet=%d)\n", p2_period, p2_wcet);
             exit(1);
         }
@@ -184,18 +139,13 @@ test_concurrent(int p1_period, int p1_wcet,
 
     int p3 = fork();
     if (p3 < 0) { printf("FAIL: fork p3 failed\n"); exit(1); }
-    if (p3 == 0) 
-    {
+    if (p3 == 0) {
         int ret = user_set_edf(getpid(), p3_period, p3_wcet);
-        if ((ret >= 0 && expect) || (ret < 0 && !expect)) 
-        {
+        if ((ret >= 0 && expect) || (ret < 0 && !expect)) {
             printf("PASS: Concurrent p3 (period=%d, wcet=%d)\n", p3_period, p3_wcet);
             exit(0);
-        } 
-        else 
-        {
-            printf("FAIL: Concurrent p3 (period=%d, wcet=%d) returned %d\n",
-                   p3_period, p3_wcet, ret);
+        } else {
+            printf("FAIL: Concurrent p3 (period=%d, wcet=%d) returned %d\n", p3_period, p3_wcet, ret);
             exit(1);
         }
     }
@@ -205,10 +155,20 @@ test_concurrent(int p1_period, int p1_wcet,
     wait(0);
 }
 
-int
-main(void)
-{
-    // Single-task tests
+// -------------------------------------------
+// Main Test Runner
+// -------------------------------------------
+int main(void) {
+    printf("\n=== EDF Tests Begin ===\n");
+
+    // Run basic behavior tests
+    test_basic_edf();
+    test_invalid_pid();
+    test_earliest_deadline();
+    test_deadline_miss();
+
+    // Run pass/fail validation tests
+    printf("\n=== Single Task Admission Tests ===\n");
     test_single(10, 5, 1,  "Half-util (0.5)");
     test_single( 1, 1, 1,  "Full-util (1.0)");
     test_single( 1, 0, 1,  "Zero-util (0)");
@@ -216,15 +176,12 @@ main(void)
     test_single( 0, 0, 0,  "Period = 0");
     test_single( 5, -1, 0, "WCET < 0");
 
-    // Concurrent test: expects rejection for p3
-    test_concurrent
-    (
-         10, 5,
-         20,10,
-          5, 1,
-          0
-    );
+    printf("\n=== Concurrent Admission Tests ===\n");
+    test_concurrent(10, 5,
+                    20, 10,
+                    5,  1,
+                    0); // p3 should be rejected
 
-    printf("ALL TESTS DONE\n");
+    printf("\n=== EDF Tests Complete ===\n");
     exit(0);
 }
