@@ -135,11 +135,12 @@ main(void)
     test_single( 5, -1, 0, "WCET < 0");
 
     // Concurrent test: expects rejection for p3
-    test_concurrent(
+    test_concurrent
+    (
          10, 5,
          20,10,
           5, 1,
-        0
+          0
     );
 
     printf("ALL TESTS DONE\n");
