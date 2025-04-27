@@ -141,8 +141,8 @@ usertrap(void)
 
 	if (killed(p)) exit(-1);
 
-	// give up the CPU if this is a timer interrupt.
-	//CHANGED IT HERE
+
+
 	// if (which_dev == 2)
 	// {
 	// 	struct proc *p = myproc();
@@ -157,6 +157,7 @@ usertrap(void)
     // 		}
     // 		yield();                      // always yield on a timer tick
 	// }
+		//CHANGED IT HERE
 	if (which_dev == 2) 
 	{
 		struct proc *p = myproc();
