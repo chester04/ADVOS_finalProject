@@ -98,7 +98,6 @@ sys_user_set_edf(void)
   	int period, wcet;
   	argint(0, &period);
   	argint(1, &wcet);
-    return -1;
 
   	int pid = myproc()->pid;
   	return kern_set_edf(pid, period, wcet);

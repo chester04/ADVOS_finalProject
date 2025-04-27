@@ -792,16 +792,16 @@ procdump(void)
 int
 kern_set_edf(int pid, int period, int deadline)
 {
-  struct proc *p;
-  for(p = proc; p < &proc[NPROC]; p++){
-    if(p->pid == pid){
-      acquire(&p->lock);
-      p->edf = 1;
-      p->period = period;
-    //   p->wcet = wcet;
-      p->deadline = ticks + period;
-      p->time_used = 0;
-      release(&p->lock);
+	struct proc *p;
+	for(p = proc; p < &proc[NPROC]; p++){
+		if(p->pid == pid){
+    		acquire(&p->lock);
+    		p->edf = 1;
+    		p->period = period;
+    //  	p->wcet = wcet;
+    		p->deadline = ticks + period;
+    		p->time_used = 0;
+    		release(&p->lock);
       return 0;
     }
   }
