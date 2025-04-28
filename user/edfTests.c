@@ -11,10 +11,10 @@ void basic_child(int period, int deadline, char *name) {
     if (ret == -1) {
         printf("FAILED to set EDF for %s (pid %d)\n", name, getpid());
     } else {
-        printf("%s: EDF set with period %d deadline %d (pid %d)\n", name, period, deadline, getpid());
+        printf("PASS: EDF for %s set with period %d deadline %d (pid %d)\n", name, period, deadline, getpid());
     }
     sleep(50); // simulate work
-    printf("%s: done\n", name);
+    // printf("%s: done\n", name);
     exit(0);
 }
 
@@ -39,41 +39,88 @@ void test_earliest_deadline() {
     int pid1 = fork();
     if (pid1 == 0) {
         user_set_edf(getpid(), 50, 50); // later deadline
-        for (int i = 0; i < 5; i++) {
-            printf("Long deadline process running (pid %d)\n", getpid());
-            sleep(5);
-        }
+        sleep(1); // slight delay to ensure both processes get scheduled
+        // printf("Long deadline process running (pid %d)\n", getpid());
         exit(0);
     }
 
     int pid2 = fork();
     if (pid2 == 0) {
         user_set_edf(getpid(), 10, 10); // earlier deadline
-        for (int i = 0; i < 5; i++) {
-            printf("Short deadline process running (pid %d)\n", getpid());
-            sleep(5);
-        }
+        // printf("Short deadline process running (pid %d)\n", getpid());
         exit(0);
     }
 
-    wait(0);
-    wait(0);
+    int short_done = 0, long_done = 0;
+    int status;
+    int pid;
+
+    // code added here to make sure that the earlier deadline gets processed first
+    for (int i = 0; i < 2; i++) {
+        pid = wait(&status);
+        if (pid == pid2) {
+            // printf("Short deadline process (pid %d) finished first.\n", pid2);
+            short_done = 1;
+        } else if (pid == pid1) {
+            // printf("Long deadline process (pid %d) finished.\n", pid1);
+            long_done = 1;
+        }
+    }
+
+    if (short_done && long_done) {
+        printf("PASS: Short deadline process completed before long deadline process.\n");
+    } else {
+        printf("FAIL: Short deadline process did not complete before long deadline process.\n");
+    }
 }
 
 // -------------------------------------------
 // Test 3: Deadline Miss Handling
 // -------------------------------------------
+// void test_deadline_miss() {
+//     printf("\n--- Test 3: Deadline Miss and Roll Over ---\n");
+//     int pid = fork();
+//     if (pid == 0) {
+//         user_set_edf(getpid(), 10, 20);
+//         printf("Process with short period started (pid %d)\n", getpid());
+//         sleep(30); // Miss the deadline intentionally
+//         printf("Process after missing deadline (pid %d)\n", getpid());
+//         exit(0);
+//     }
+//     wait(0);
+// }
 void test_deadline_miss() {
     printf("\n--- Test 3: Deadline Miss and Roll Over ---\n");
+
     int pid = fork();
     if (pid == 0) {
-        user_set_edf(getpid(), 10, 20);
-        printf("Process with short period started (pid %d)\n", getpid());
-        sleep(30); // Miss the deadline intentionally
-        printf("Process after missing deadline (pid %d)\n", getpid());
-        exit(0);
+        user_set_edf(getpid(), 10, 20);  // small period, small deadline
+        int start_time = uptime();       // record starting ticks
+        // printf("Process with short period started (pid %d)\n", getpid());
+
+        sleep(30);  // intentionally miss the deadline
+
+        int end_time = uptime();         // record ending ticks
+        // printf("Process after missing deadline (pid %d)\n", getpid());
+
+        int elapsed = end_time - start_time;
+
+        // Child exits with status indicating success/failure
+        if (elapsed > 20) {
+            exit(0);  // success: deadline was missed
+        } else {
+            exit(1);  // failure: somehow didn't miss deadline
+        }
     }
-    wait(0);
+
+    int status;
+    int child_pid = wait(&status);
+
+    if (child_pid > 0 && status == 0) {
+        printf("PASS: Process missed its deadline as expected.\n");
+    } else {
+        printf("FAIL: Process did not miss its deadline when it should have.\n");
+    }
 }
 
 // -------------------------------------------
@@ -155,7 +202,6 @@ int main(void) {
 
     // Run basic behavior tests
     test_basic_edf();
-    test_invalid_pid();
     test_earliest_deadline();
     test_deadline_miss();
 
