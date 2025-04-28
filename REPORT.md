@@ -40,6 +40,14 @@ int edf;              // is this process in EDF scheduling?
     - always yield on every timer interrupt
   - Expanded the test cases in EdfTests with Single-Task and Concurrent EDF test cases
 2. Liza
+- Implemented functionality in `schedular()` to:
+    - find process with earliest dealine and runs it
+    - the schedular defaults to round robin if no edf processes in ptable or the edf processes have reached their deadlines
+- Updated `kernel/proc.c` in `fork()` to:
+    - copy parent processes edf parameters into child
+- Updated `kernel/proc.c` in `allocproc()` to:
+    - initialize every processes edf variables
+- Expanded upon test cases 1-3 in `edfTests.c` that Amy wrote initially
 3. Amy
   - Contributing to the scheduler() function in the proc.c file, making sure processes with the earliest deadlines are picked first.
   - Writing and expanding user-level test cases in the edftest.c file to check basic EDF setup, scheduling orders, and how deadline misses are handled.
