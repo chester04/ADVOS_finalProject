@@ -24,3 +24,4 @@ int edf;              // is this process in EDF scheduling?
 # How to run and testing
 - firstly run `make qemu` to boot up xv6
 - next while in the qemu terminal, run ./edfTests
+
