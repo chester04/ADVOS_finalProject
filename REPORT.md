@@ -30,8 +30,11 @@ int edf;              // is this process in EDF scheduling?
 
 ## Tasks
 1. Sameen
-  - Implemented a safety check in kern_set_edf so a process is admitted to EDF scheduling only when the total CPU utilization ≤ 100%.
-  - Updated kernel/trap.c (usertrap) to:
+  - Implemented a safety check in kernel/proc.c in the function kern_set_edf() so a process is admitted to EDF scheduling only when the total CPU utilization ≤ 100%
+    - computed the task's capacity in milli-percent: cap = (wcet/period)*1000
+    - loop through existing EDF tasks to count and then return -1 if we’re already over capacity
+    - find and allow the target process
+  - Updated kernel/trap.c in the usertrap() function to:
     - account for one tick of execution time per tick
     - roll a job to its next period when its WCET is exhausted or its deadline is reached
     - always yield on every timer interrupt
