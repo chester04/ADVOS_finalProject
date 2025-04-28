@@ -131,8 +131,3 @@ memcpy(void *dst, const void *src, uint n)
 {
 	return memmove(dst, src, n);
 }
-
-// int
-// user_set_edf(int period, int wcet){
-// 	return 0;
-// }

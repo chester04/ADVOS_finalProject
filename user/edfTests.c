@@ -31,18 +31,10 @@ void test_basic_edf() {
 }
 
 // -------------------------------------------
-// Test 2: Invalid PID Handling
-// (Can't test properly in user mode)
-// -------------------------------------------
-void test_invalid_pid() {
-    printf("\n--- Test 2: Invalid PID Handling (SKIPPED) ---\n");
-}
-
-// -------------------------------------------
-// Test 3: EDF Prefers Earliest Deadline
+// Test 2: EDF Prefers Earliest Deadline
 // -------------------------------------------
 void test_earliest_deadline() {
-    printf("\n--- Test 3: EDF Scheduler Preference ---\n");
+    printf("\n--- Test 2: EDF Scheduler Preference ---\n");
 
     int pid1 = fork();
     if (pid1 == 0) {
@@ -69,10 +61,10 @@ void test_earliest_deadline() {
 }
 
 // -------------------------------------------
-// Test 4: Deadline Miss Handling
+// Test 3: Deadline Miss Handling
 // -------------------------------------------
 void test_deadline_miss() {
-    printf("\n--- Test 4: Deadline Miss and Roll Over ---\n");
+    printf("\n--- Test 3: Deadline Miss and Roll Over ---\n");
     int pid = fork();
     if (pid == 0) {
         user_set_edf(getpid(), 10, 20);
