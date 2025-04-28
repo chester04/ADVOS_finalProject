@@ -41,4 +41,9 @@ int edf;              // is this process in EDF scheduling?
   - Expanded the test cases in EdfTests with Single-Task and Concurrent EDF test cases
 2. Liza
 3. Amy
+  - Contributing to the scheduler() function in the proc.c file, making sure processes with the earliest deadlines are picked first.
+  - Writing and expanding user-level test cases in the edftest.c file to check basic EDF setup, scheduling orders, and how deadline misses are handled.
+  - Making sure user-level functions could correctly call into the kernel’s kern_set_edf() to set deadlines and periods.
+  - Testing and fixing issues where processes needed to roll over to their next period after using up their allowed time.
+  - Setting up both simple and concurrent tests to make sure EDF scheduling worked as expected under different conditions.
 
