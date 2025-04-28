@@ -136,7 +136,7 @@ static void test_single(int period, int wcet, int expect, const char *name) {
 }
 
 // -------------------------------------------
-// Utility: Concurrent Admission Test
+// Utility: Concurrent Tests
 // -------------------------------------------
 static void test_concurrent(int p1_period, int p1_wcet,
                             int p2_period, int p2_wcet,
@@ -194,7 +194,7 @@ int main(void) {
     test_deadline_miss();
 
     // Run pass/fail validation tests
-    printf("\n=== Single Task Admission Tests ===\n");
+    printf("\n=== Single Task Tests ===\n");
     test_single(10, 5, 1,  "Half-util (0.5)");
     test_single( 1, 1, 1,  "Full-util (1.0)");
     test_single( 1, 0, 1,  "Zero-util (0)");
@@ -202,7 +202,7 @@ int main(void) {
     test_single( 0, 0, 0,  "Period = 0");
     test_single( 5, -1, 0, "WCET < 0");
 
-    printf("\n=== Concurrent Admission Tests ===\n");
+    printf("\n=== Concurrent Tests ===\n");
     test_concurrent(10, 5,
                     20, 10,
                     5,  1,

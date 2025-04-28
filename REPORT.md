@@ -24,7 +24,18 @@ int edf;              // is this process in EDF scheduling?
 
 - in `trap.c` - 
 
-# How to run and testing
+## How to run and testing
 - firstly run `make qemu` to boot up xv6
-- next while in the qemu terminal, run ./edfTests
+- next while in the qemu terminal, run: ./edfTests
+
+## Tasks
+1. Sameen
+  - Implemented a safety check in kern_set_edf so a process is admitted to EDF scheduling only when the total CPU utilization ≤ 100%.
+  - Updated kernel/trap.c (usertrap) to:
+    - account for one tick of execution time per tick
+    - roll a job to its next period when its WCET is exhausted or its deadline is reached
+    - always yield on every timer interrupt
+  - Expanded the test cases in EdfTests with Single-Task and Concurrent EDF test cases
+2. Liza
+3. Amy
 
