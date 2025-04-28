@@ -77,18 +77,6 @@ void test_earliest_deadline() {
 // -------------------------------------------
 // Test 3: Deadline Miss Handling
 // -------------------------------------------
-// void test_deadline_miss() {
-//     printf("\n--- Test 3: Deadline Miss and Roll Over ---\n");
-//     int pid = fork();
-//     if (pid == 0) {
-//         user_set_edf(getpid(), 10, 20);
-//         printf("Process with short period started (pid %d)\n", getpid());
-//         sleep(30); // Miss the deadline intentionally
-//         printf("Process after missing deadline (pid %d)\n", getpid());
-//         exit(0);
-//     }
-//     wait(0);
-// }
 void test_deadline_miss() {
     printf("\n--- Test 3: Deadline Miss and Roll Over ---\n");
 
