@@ -5,7 +5,7 @@ Earliest Deadline First (EDF) is a dynamic scheduling algorithm where the proces
 
 This project integrates EDF scheduling into the xv6 operating system to allow real-time task management, deadline monitoring, and scheduling based on temporal constraints.
 
-▶️ [Watch the Demo Video](https://github.com/chester04/ADVOS_finalProject/blob/riscv/Screen%20Recording%202025-04-28%20at%205.22.08%E2%80%AFPM.mov) 
+▶️ [Watch the Demo Video](https://github.com/chester04/ADVOS_finalProject/blob/riscv/demo_video.mov) 
 
 
 ## Key Features and Changes
