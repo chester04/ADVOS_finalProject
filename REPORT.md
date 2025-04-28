@@ -22,8 +22,6 @@ int edf;              // is this process in EDF scheduling?
       - if no edf procs, defaults to
   - new function `int kern_set_edf(int pid, int period, int wcet)` to allow the user to set edf deadlines for a given process.
 
-- in `trap.c` - 
-
 ## How to run and testing
 - firstly run `make qemu` to boot up xv6
 - next while in the qemu terminal, run: ./edfTests
