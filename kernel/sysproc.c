@@ -103,6 +103,6 @@ sys_user_set_edf(void)
   	argint(0, &pid);
   	argint(1, &period);
   	argint(2, &wcet);
-  	//call EDF admission routine
-  	return kern_set_edf(pid, period, wcet);
+	//call EDF admission routine
+    return kern_set_edf(pid, period, wcet);
 }

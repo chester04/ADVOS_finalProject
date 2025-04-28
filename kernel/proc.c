@@ -814,13 +814,12 @@ procdump(void)
 // }
 
 //sameen: updated new code, check this if it's correct
-//ONLY allow a process into EDF scheduling if total capacity ≤ 100%
+//ONLY allow a process into EDF scheduling if total capacity ≤ 100%, liza: added schedulability check 
 int
 kern_set_edf(int pid, int period, int wcet)
 {
     struct proc *p, *p_check;
     int new_cap, total_cap = 0;
-
     //compute this task's capacity in milli-percent: cap = (wcet/period)*1000
     if(period <= 0 || wcet < 0 || wcet > period)
 	{
@@ -838,7 +837,7 @@ kern_set_edf(int pid, int period, int wcet)
         }
         release(&p_check->lock);
 
-        //return -1 if we’re already over capacity, can't do it
+        //return -1 if we’re already over capacity (not schedulable)
         if(total_cap + new_cap > 1000)
 		{
             return -1;

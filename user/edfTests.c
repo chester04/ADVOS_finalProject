@@ -25,7 +25,7 @@ void test_basic_edf() {
     printf("\n--- Test 1: Basic EDF Setting ---\n");
     int pid = fork();
     if (pid == 0) {
-        basic_child(10, 20, "BasicProc");
+        basic_child(20, 10, "BasicProc");
     }
     wait(0);
 }
